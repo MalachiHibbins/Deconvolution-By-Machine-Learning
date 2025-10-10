@@ -21,8 +21,7 @@ def add_poisson_noise(image, scale_factor=1000):
     return torch.clamp(noisy_image, 0, 1)
 
 def convolution(image, kernel):    
-    if kernel.size(2) % 2 == 0 or kernel.size(3) % 2 == 0:
-        raise ValueError("Kernel size must be odd")
+    #
     # Apply convolution with padding to maintain image size
     padding = (kernel.size(2) // 2, kernel.size(3) // 2)
     filtered = F.conv2d(image.unsqueeze(0).unsqueeze(0), kernel, padding=padding)
@@ -50,8 +49,9 @@ def deconvolution(blurred_image, kernel, epsilon=1e-5):
 
 def gaussian_normalised_kernel(size, sigma):
     """Generate a 2D Gaussian kernel."""
-    ax = torch.arange(-size + 1, size + 1)
+    ax = torch.arange(-size//2 + 1, size//2 + 1)
     xx, yy = torch.meshgrid(ax, ax, indexing='ij')
     kernel = torch.exp(-(xx**2 + yy**2) / (2. * sigma**2))
     kernel = kernel / torch.sum(kernel)
+    print(f"kernel shape: {kernel.shape}")
     return kernel.unsqueeze(0).unsqueeze(0)  # Shape: [1, 1, size, size]
