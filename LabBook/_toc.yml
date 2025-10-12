@@ -1,0 +1,11 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+
+format: jb-book
+root: intro
+chapters:
+- file: Week1/1PytorchTutorial.ipynb
+- file: Week2/12DFowierTransforms.ipynb
+- file: Week2/2ImageDebluring.ipynb
+- file: Week3/1richardsonlucy.ipynb
+

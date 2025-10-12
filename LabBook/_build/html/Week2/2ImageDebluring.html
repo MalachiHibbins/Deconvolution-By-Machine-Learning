@@ -1,0 +1,1041 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Basics of image de-blurring &#8212; Deconvolution Using Machine Learning</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b76e3c8a" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'Week2/2ImageDebluring';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Richardson Lucy Algorithm" href="../Week3/1richardsonlucy.html" />
+    <link rel="prev" title="Fourier Transforms in 2D" href="12DFowierTransforms.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/logo.png" class="logo__image only-light" alt="Deconvolution Using Machine Learning - Home"/>
+    <script>document.write(`<img src="../_static/logo.png" class="logo__image only-dark" alt="Deconvolution Using Machine Learning - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../intro.html">
+                    Contents
+                </a>
+            </li>
+        </ul>
+        <ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Week1/1PytorchTutorial.html">Learning Pytorch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="12DFowierTransforms.html">Fourier Transforms in 2D</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Basics of image de-blurring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Week3/1richardsonlucy.html">Richardson Lucy Algorithm</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/executablebooks/jupyter-book" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/executablebooks/jupyter-book/issues/new?title=Issue%20on%20page%20%2FWeek2/2ImageDebluring.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/Week2/2ImageDebluring.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Basics of image de-blurring</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contents">Contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#load-images">Load images</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shot-noise-poisson-noise">Shot noise (poisson noise)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#method">Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-in-2d">Filtering in 2D</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-example-the-box-filter">Filtering Example: The box filter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convolution">Convolution</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-box-filter">The box filter</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-box-functions">Creating box functions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#carry-out-convolution">Carry out convolution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#discussion">Discussion</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#de-convolution">De-convolution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convolving-and-then-de-convolving-the-image">Convolving and then de-convolving the image</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gaussian-filters">Gaussian filters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#realistic-noise">Realistic noise</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="basics-of-image-de-blurring">
+<h1>Basics of image de-blurring<a class="headerlink" href="#basics-of-image-de-blurring" title="Link to this heading">#</a></h1>
+<p>Blur filters are low pass filters, they remove high frequency components which are usually associated with noise. Low pass filters applied to images makes them look bury. A pixel is blurred by taking the average over the surrounding pixels. Doing this for each pixel individually is slow but can be sped up using convolution.</p>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Image noise</p></li>
+<li><p>How convolution can be used to speed up image filtering?</p></li>
+<li><p>The process which noise and blur effect images</p></li>
+<li><p>Convolution and de-convolution to blur and de-blur images</p></li>
+<li><p>De-convolution in de-blur noisy images</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">transforms</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">transforms</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="kn">import</span> <span class="nn">torch</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+
+<span class="ne">ModuleNotFoundError</span>: No module named &#39;torchvision&#39;
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="load-images">
+<h2>Load images<a class="headerlink" href="#load-images" title="Link to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load images</span>
+<span class="n">folder</span> <span class="o">=</span> <span class="s1">&#39;Images/&#39;</span>
+<span class="n">device</span> <span class="o">=</span> <span class="s1">&#39;cpu&#39;</span>
+<span class="n">image</span> <span class="o">=</span> <span class="s1">&#39;pigeon.jpeg&#39;</span>
+
+<span class="n">image_path</span> <span class="o">=</span> <span class="n">folder</span> <span class="o">+</span> <span class="n">image</span>  <span class="c1"># Replace with your image path</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+<span class="n">transform</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Compose</span><span class="p">([</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Grayscale</span><span class="p">(),</span>  <span class="c1"># Convert to grayscale</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">Resize</span><span class="p">((</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">)),</span> <span class="c1"># Resize to 256x256 to speed up processing</span>
+        <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>  
+    <span class="p">])</span>
+<span class="n">img_tensor</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># Remove channel dimension</span>
+
+<span class="c1"># Display the image</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(np.float64(-0.5), np.float64(255.5), np.float64(255.5), np.float64(-0.5))
+</pre></div>
+</div>
+<img alt="../_images/15962b066531de0ac47604357b02c2b3f8c8b5613bf736374b56b5cb1a8238da.png" src="../_images/15962b066531de0ac47604357b02c2b3f8c8b5613bf736374b56b5cb1a8238da.png" />
+</div>
+</div>
+</section>
+<section id="shot-noise-poisson-noise">
+<h2>Shot noise (poisson noise)<a class="headerlink" href="#shot-noise-poisson-noise" title="Link to this heading">#</a></h2>
+<p>Occurs when there is a finite number of particles that carry energy, such as photons in an image sensor or electrons in a circuit. Shot noise is one of the main types of noise that degrade image quality.</p>
+<p>Shot noise follows a Poisson distribution because:</p>
+<ol class="arabic simple">
+<li><p><strong>Discrete countable events</strong>: Each photon arrival is a discrete, countable event</p></li>
+<li><p><strong>Constant Average Rate <span class="math notranslate nohighlight">\(\lambda\)</span></strong>: The average rate of photon arrivals depends on the light intensity (brighter = more photons per second)</p></li>
+<li><p><strong>No simultaneous Events</strong>: In any tiny time interval, the probability of a photon arriving is very small. In an infinitesimally small window the probability of more than one event occuring is <span class="math notranslate nohighlight">\(\approx 0\)</span></p></li>
+<li><p><strong>Independent</strong>: Previous photon arrivals don’t affect future arrivals</p></li>
+</ol>
+<p>These conditions exactly match the assumptions of a Poisson process. The number of photons detected in a fixed time period (<span class="math notranslate nohighlight">\(\Delta t\)</span>) follows:</p>
+<div class="math notranslate nohighlight">
+\[P(k) = \frac{\lambda^k e^{-\lambda}}{k!}\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(k\)</span> = number of photons detected</p></li>
+<li><p><span class="math notranslate nohighlight">\(\lambda\)</span> = average number of photons arriving in <span class="math notranslate nohighlight">\(\Delta t\)</span> (proportional to light intensity)</p></li>
+<li><p>Higher <span class="math notranslate nohighlight">\(\lambda\)</span> = brighter pixel = more photons = less relative noise</p></li>
+<li><p>Lower <span class="math notranslate nohighlight">\(\lambda\)</span> = darker pixel = fewer photons = more relative noise</p></li>
+</ul>
+<p>This is why images taken in low light (few photons) are much noisier than images in bright light (many photons).</p>
+</section>
+<section id="method">
+<h2>Method<a class="headerlink" href="#method" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The number of photons in each pixel was simulated depending on the brightness of the pixel and its scale factor (<span class="math notranslate nohighlight">\(s\)</span>).</p></li>
+<li><p>The photon count was set as the expected number of photons in the pixel <span class="math notranslate nohighlight">\(sP(x)\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">torch.poisson</span></code> randomly generates the number of photons present due to random variation</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">add_poisson_noise</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add realistic Poisson (shot) noise to an image</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        image: Input tensor in range [0,1]</span>
+<span class="sd">        scale_factor: Higher values = less noise (more photons)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert to photon counts (scale up to simulate photon detection)</span>
+    <span class="n">photon_counts</span> <span class="o">=</span> <span class="n">image</span> <span class="o">*</span> <span class="n">scale_factor</span>
+    
+    <span class="c1"># Apply Poisson noise </span>
+    <span class="n">noisy_photons</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="n">photon_counts</span><span class="p">)</span>
+    
+    <span class="c1"># Convert back to [0,1] range</span>
+    <span class="n">noisy_image</span> <span class="o">=</span> <span class="n">noisy_photons</span> <span class="o">/</span> <span class="n">scale_factor</span>
+    
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">noisy_image</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Create noisy images with different noise levels</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>  
+
+<span class="c1"># Low noise (high photon count)</span>
+<span class="n">noisy_low</span> <span class="o">=</span> <span class="n">add_poisson_noise</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+
+<span class="c1"># Medium noise </span>
+<span class="n">noisy_medium</span> <span class="o">=</span> <span class="n">add_poisson_noise</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+
+<span class="c1"># High noise (low photon count - like low light)</span>
+<span class="n">noisy_high</span> <span class="o">=</span> <span class="n">add_poisson_noise</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="c1"># Display results</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Original Image&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">noisy_low</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;s = 5000&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">noisy_medium</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;s = 500&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">noisy_high</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;s = 50&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/772ff0e7e636a5089c3c4ad7c94ecc38c9dc024fccab4b5eaf0e80408758cfd0.png" src="../_images/772ff0e7e636a5089c3c4ad7c94ecc38c9dc024fccab4b5eaf0e80408758cfd0.png" />
+</div>
+</div>
+</section>
+<section id="results">
+<h2>Results<a class="headerlink" href="#results" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The smaller the scale factor (number of photons) the noisier the image, which in reality is what happens.</p></li>
+<li><p>A key property of a poisson distribution is that the mean and variance are both <span class="math notranslate nohighlight">\(\lambda\)</span>. Increasing <span class="math notranslate nohighlight">\(s\)</span> increases <span class="math notranslate nohighlight">\(\lambda\)</span> and therefore should increase the absolute noise. The relative noise decreases, this is clear from looking at the signal to noise ratio <span class="math notranslate nohighlight">\(R\)</span>
+$<span class="math notranslate nohighlight">\(R = \frac{\text{signal}}{\text{noise}} = \frac{\lambda}{\sqrt{\lambda}} = \sqrt{\lambda}\)</span>$</p></li>
+<li><p>This explains why higher photon counts produce clearer images.</p></li>
+</ul>
+</section>
+<section id="filtering-in-2d">
+<h2>Filtering in 2D<a class="headerlink" href="#filtering-in-2d" title="Link to this heading">#</a></h2>
+<p>Filtering in 2D works by acting a matrix q (dimensions <span class="math notranslate nohighlight">\(N\)</span>, <span class="math notranslate nohighlight">\(M\)</span>) on an underlying image p:
+$<span class="math notranslate nohighlight">\(p'_{x,y} = \sum_{n=-N}^{N} \sum_{m=-M}^{M} p_{x+n,y+m} \cdot q_{n,m}\)</span>$</p>
+</section>
+<section id="filtering-example-the-box-filter">
+<h2>Filtering Example: The box filter<a class="headerlink" href="#filtering-example-the-box-filter" title="Link to this heading">#</a></h2>
+<p>The box filter is a type of low pass filter which helps to remove noise and blurs images. It works by setting the pixel value <span class="math notranslate nohighlight">\(p_{x,y}\)</span> to be the average of the <span class="math notranslate nohighlight">\(N\)</span> pixels above it and <span class="math notranslate nohighlight">\(M\)</span> pixels below it.</p>
+<div class="math notranslate nohighlight">
+\[\tag{1} p'(x,y) = \frac{1}{(2N+1)(2M+1)} \sum_{n=-N}^{N} \sum_{m=-M}^{M} p(x+n,y+m)\]</div>
+<p>This algorithm is incredibly slow when implemented with nested loops since computing each pixel value has an efficiency of <span class="math notranslate nohighlight">\(\mathbb{O}(N^2)\)</span> which for the overall image will have efficiency <span class="math notranslate nohighlight">\(\mathbb{O}(N^4)\)</span>, since each pixel needs to be filtered in the <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> direction. This can be rapidly increased using convolution.</p>
+</section>
+<section id="convolution">
+<h2>Convolution<a class="headerlink" href="#convolution" title="Link to this heading">#</a></h2>
+<p>The convolution of two functions is given by the multiplication of the fourier transforms. The convolution theorem states that the convolution of two functions <span class="math notranslate nohighlight">\(v(x)\)</span> and <span class="math notranslate nohighlight">\(u(x)\)</span> can be given in terms of their fourier transforms <span class="math notranslate nohighlight">\(V(k)\)</span> and <span class="math notranslate nohighlight">\(U(k)\)</span> respectively:</p>
+<div class="math notranslate nohighlight">
+\[f(x) = v(x) * u(x) = \mathcal{F}^{-1}\{V(k) \cdot U(k)\} \tag{2}\]</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(*\)</span> denotes convolution</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{F}^{-1}\)</span> is the inverse Fourier transform</p></li>
+<li><p><span class="math notranslate nohighlight">\(\cdot\)</span> denotes pointwise multiplication
+Convolution in spatial domain is the same as multiplication in frequency domain. The convolution method can greatly improve the efficiency of applying filters especially when using the fast fourier transform. The nested loop approach has efficiency <span class="math notranslate nohighlight">\(\mathbb{O}(N^4)\)</span> (<span class="math notranslate nohighlight">\(\mathbb{O}(N^2)\)</span> per pixel) where as transfering to the frequency domain increases the efficency to <span class="math notranslate nohighlight">\(\mathbb{O}(N^2) \log(N)\)</span> (<span class="math notranslate nohighlight">\(\mathbb{O}(\log{N})\)</span> per pixel). Furthermore there are advantages to using the better optimized pytorch tensors compared to using inefficient python loops.
+Convolution corresponds to numerically represents multiplication of every value in the list <span class="math notranslate nohighlight">\(v(x)\)</span> with every value in the list <span class="math notranslate nohighlight">\(u(x)\)</span>.</p></li>
+</ul>
+<section id="the-box-filter">
+<h3>The box filter<a class="headerlink" href="#the-box-filter" title="Link to this heading">#</a></h3>
+<p>The box function is the “convolution kernel” for this type of filter, which describes which surrounding pixel values will be used to form the filtered pixel value <span class="math notranslate nohighlight">\(p'_{x,y}\)</span>. It is described as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\text{box}_{N,M}(n,m) = \begin{cases} 
+\frac{1}{(2N+1)(2M+1)} &amp; \text{if} -N \leq n \leq N \text{ and} - M \leq m \leq M \\
+0 &amp; \text{else}
+\end{cases}\end{split}\]</div>
+<p>To blur the image the the box function is applied to the image using convolution.</p>
+<div class="math notranslate nohighlight">
+\[p'(x,y) = p(x,y) * \text{box}_{N,M}(x,y)\]</div>
+<section id="creating-box-functions">
+<h4>Creating box functions<a class="headerlink" href="#creating-box-functions" title="Link to this heading">#</a></h4>
+<p>Different shapes of box functions were created and there bluing effects were analyzed.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">box_function</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="p">):</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N</span> <span class="o">*</span> <span class="n">M</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">kernel</span>
+
+<span class="n">square_kernel</span> <span class="o">=</span> <span class="n">box_function</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">horizontal_kernel</span> <span class="o">=</span> <span class="n">box_function</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">vertical_kernel</span> <span class="o">=</span> <span class="n">box_function</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="carry-out-convolution">
+<h4>Carry out convolution<a class="headerlink" href="#carry-out-convolution" title="Link to this heading">#</a></h4>
+<div class="math notranslate nohighlight">
+\[p'(x,y) = p(x,y) * \text{box}_{N,M}(x,y)\]</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
+
+<span class="k">def</span> <span class="nf">convolution</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">kernel</span><span class="p">):</span>
+    
+    <span class="c1"># Apply convolution with padding to maintain image size</span>
+    <span class="n">padding</span> <span class="o">=</span> <span class="p">(</span><span class="n">kernel</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">kernel</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">filtered</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
+    
+    <span class="c1"># Remove batch and channel dimensions: [1, 1, H, W] -&gt; [H, W]</span>
+    <span class="k">return</span> <span class="n">filtered</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Original&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">square_kernel</span><span class="p">,</span> <span class="n">horizontal_kernel</span><span class="p">,</span> <span class="n">vertical_kernel</span><span class="p">]):</span>
+    <span class="n">filtered_img</span> <span class="o">=</span> <span class="n">convolution</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">filtered_img</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+    <span class="n">titles</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Box Filter (5x5)&#39;</span><span class="p">,</span> <span class="s1">&#39;Horizontal Box (1x5)&#39;</span><span class="p">,</span> <span class="s1">&#39;Vertical Box (5x1)&#39;</span><span class="p">]</span>
+    <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">titles</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/1f5e7ccf9efc282cadb100da27a54ec5b917fee8e7403f4801ee1efd02bd008d.png" src="../_images/1f5e7ccf9efc282cadb100da27a54ec5b917fee8e7403f4801ee1efd02bd008d.png" />
+</div>
+</div>
+</section>
+<section id="discussion">
+<h4>Discussion<a class="headerlink" href="#discussion" title="Link to this heading">#</a></h4>
+<ul class="simple">
+<li><p>The results show that the square box filter causes equal bluing in both directions.</p></li>
+<li><p>The horizontal box filter causes bluing in only the horizontal direction.</p></li>
+<li><p>Similarly for the vertical box filter.</p></li>
+</ul>
+</section>
+</section>
+</section>
+<section id="de-convolution">
+<h2>De-convolution<a class="headerlink" href="#de-convolution" title="Link to this heading">#</a></h2>
+<p>The images can be de-blurred via de-convolution using the convolution kernel. De convolution is working out <span class="math notranslate nohighlight">\(v(x)\)</span> knowing <span class="math notranslate nohighlight">\(f(x)\)</span> and <span class="math notranslate nohighlight">\(u(x)\)</span> given <span class="math notranslate nohighlight">\(f(x) = v(x) * u(x)\)</span> . The inverse (de-convolution) is:
+$<span class="math notranslate nohighlight">\(v(x) = \mathcal{F}^{-1}\left\{\frac{F(k)}{H(k)}\right\} \tag{3}\)</span><span class="math notranslate nohighlight">\(
+Since the convolution kernel for the blured images is known the original image can be recovered.
+\)</span><span class="math notranslate nohighlight">\(p(x,y) = \mathcal{F}^{-1}\left\{\frac{P'(u,v)}{B(u,v)}\right\} \tag{4}\)</span>$</p>
+<p>Where:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(B(k) = \mathcal{F}\{h(x)\}\)</span> is the Fourier transform of the blur kernel in this case the fourier transform of the box function</p></li>
+<li><p><span class="math notranslate nohighlight">\(P'(u,v) = \mathcal{F}\{p'(x,y)\}\)</span> is the Fourier transform of the blurred image</p></li>
+</ul>
+</section>
+<section id="convolving-and-then-de-convolving-the-image">
+<h2>Convolving and then de-convolving the image<a class="headerlink" href="#convolving-and-then-de-convolving-the-image" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The image is first blurred using convolution with the box function</p></li>
+<li><p>The blurred image is then de-blurred using de-convolution with the box function</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">deconvolution</span><span class="p">(</span><span class="n">blurred_image</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+    <span class="c1"># Compute Fourier transforms</span>
+    <span class="n">P_blurred</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">blurred_image</span><span class="p">)</span>
+    <span class="n">B</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">kernel</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">s</span><span class="o">=</span><span class="n">blurred_image</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    
+    <span class="c1"># Avoid division by zero by adding a small constant (epsilon)</span>
+    <span class="n">B_conj</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
+    <span class="n">B_magnitude_squared</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">B</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">B_inv</span> <span class="o">=</span> <span class="n">B_conj</span> <span class="o">/</span> <span class="p">(</span><span class="n">B_magnitude_squared</span> <span class="o">+</span> <span class="n">epsilon</span><span class="p">)</span>
+    
+    <span class="c1"># Perform deconvolution in the frequency domain</span>
+    <span class="n">P_deblurred</span> <span class="o">=</span> <span class="n">P_blurred</span> <span class="o">*</span> <span class="n">B_inv</span>
+
+    <span class="c1"># Inverse Fourier transform to get the deblurred image</span>
+    <span class="n">deblurred_image</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft2</span><span class="p">(</span><span class="n">P_deblurred</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
+    
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">deblurred_image</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">square_kernel</span> <span class="o">=</span> <span class="n">box_function</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">square_blured</span> <span class="o">=</span> <span class="n">convolution</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">square_kernel</span><span class="p">)</span>
+<span class="n">deblurred_img</span> <span class="o">=</span> <span class="n">deconvolution</span><span class="p">(</span><span class="n">square_blured</span><span class="p">,</span> <span class="n">square_kernel</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Original Image&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">square_blured</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Blurred Image (Square Kernel)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">deblurred_img</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Deblurred Image (Square Kernel)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(np.float64(-0.5), np.float64(255.5), np.float64(255.5), np.float64(-0.5))
+</pre></div>
+</div>
+<img alt="../_images/1538cbd6df1c4b122024e7d99e87e29fc3b95eff585fa168f2aede265897b6ef.png" src="../_images/1538cbd6df1c4b122024e7d99e87e29fc3b95eff585fa168f2aede265897b6ef.png" />
+</div>
+</div>
+</section>
+<section id="id1">
+<h2>Discussion<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The deconvolution process is not perfect. Artifacts are introduced in the image, especially around the edges potentially due to boundary effects and noise amplification.</p></li>
+<li><p>Furthermore, the box filter is not a perfect low-pass filter. While it should attenuate higher frequencies, this doesn’t always work due to its frequency response characteristics.</p></li>
+<li><p><strong>Counter-example</strong>: A high frequency alternating signal <span class="math notranslate nohighlight">\(p(x) = [..., 1, -1, 1, -1, 1, ...]\)</span> convolved with a 1×1 box filter:
+$<span class="math notranslate nohighlight">\(p'(x) = p(x) * \text{box}_1(x) = p(x)\)</span>$
+The high frequency signal passes through unchanged.</p></li>
+<li><p><strong>Example of lower frequency attenuation</strong>: A lower frequency signal <span class="math notranslate nohighlight">\(p(x) = [..., 1, -0.5, -0.5, 1, -0.5, -0.5, ...]\)</span> when convolved with <span class="math notranslate nohighlight">\(\text{box}_1\)</span> gives <span class="math notranslate nohighlight">\(\mathbb{0}\)</span>, showing selective frequency attenuation.</p></li>
+<li><p>Box filters give each pixel within the “box” equal weighting. In reality pixels closer to the middle will have larger weighting</p></li>
+<li><p>Convolving a box filter on a box filter does not give a box filter. This is a problem since applying a box filter twice isn’t doubling the amount of “blur”.</p></li>
+<li><p>Division by small values in <span class="math notranslate nohighlight">\(H(k)\)</span> can amplify noise and introduce artifacts. Especially as the box filter may attenuate certain frequencies to near zero.</p></li>
+</ul>
+</section>
+<section id="gaussian-filters">
+<h2>Gaussian filters<a class="headerlink" href="#gaussian-filters" title="Link to this heading">#</a></h2>
+<p>The gaussian filter is defined in 1 dimension as:
+$<span class="math notranslate nohighlight">\(g_{\sigma}(x) = \frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{x^2}{2\sigma^2}}\)</span><span class="math notranslate nohighlight">\(
+or in 2 dimensions as:
+\)</span><span class="math notranslate nohighlight">\(g_{\sigma}(x,y) = \frac{1}{2\pi\sigma^2} e^{-\frac{x^2+y^2}{2\sigma^2}}\)</span><span class="math notranslate nohighlight">\(
+Where \)</span>\sigma<span class="math notranslate nohighlight">\( is the standard deviation which controls the width of the gaussian. The larger the \)</span>\sigma$ the wider the gaussian and therefore the more blurring that occurs. The gaussian filter is a better low-pass filter than the box filter since it gives more weighting to pixels closer to the center.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gaussian_normalised_kernel</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a 2D Gaussian kernel.&quot;&quot;&quot;</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="n">size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">,</span> <span class="n">size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span>
+    <span class="n">xx</span><span class="p">,</span> <span class="n">yy</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">xx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">yy</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">kernel</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">kernel</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">kernel</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Shape: [1, 1, size, size]</span>
+
+<span class="n">gaussian_kernel1</span> <span class="o">=</span> <span class="n">gaussian_normalised_kernel</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">gaussian_blured1</span> <span class="o">=</span> <span class="n">convolution</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">gaussian_kernel1</span><span class="p">)</span>
+<span class="n">deblurred_gaussian1</span> <span class="o">=</span> <span class="n">deconvolution</span><span class="p">(</span><span class="n">gaussian_blured1</span><span class="p">,</span> <span class="n">gaussian_kernel1</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+
+<span class="n">gaussian_kernel2</span> <span class="o">=</span> <span class="n">gaussian_normalised_kernel</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">gaussian_blured2</span> <span class="o">=</span> <span class="n">convolution</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">gaussian_kernel2</span><span class="p">)</span>
+<span class="n">deblurred_gaussian2</span> <span class="o">=</span> <span class="n">deconvolution</span><span class="p">(</span><span class="n">gaussian_blured2</span><span class="p">,</span> <span class="n">gaussian_kernel2</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Original Image&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">gaussian_blured1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Blurred Image (Gaussian Kernel 1)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">deblurred_gaussian1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Deblurred Image (Gaussian Kernel 1)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Original Image&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">gaussian_blured2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Blurred Image (Gaussian Kernel 2)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">deblurred_gaussian2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Deblurred Image (Gaussian Kernel 2)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/bf3515ccb23e0c487ba6d7b6ee619e9621249f82326644c280636c942321ac29.png" src="../_images/bf3515ccb23e0c487ba6d7b6ee619e9621249f82326644c280636c942321ac29.png" />
+</div>
+</div>
+</section>
+<section id="id2">
+<h2>Discussion<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The de-bluring from the gaussian filters is significantly better than the box filter, especially for the heavily blured image.</p></li>
+<li><p>There are some edge artifacts present in the de-blured images, but not as bad as the box filter.</p></li>
+<li><p>This seems to be related to kernel size since larger kernels produce more edge artifacts</p></li>
+<li><p>This could be because the code assumes that the image is infinately periodic.</p></li>
+</ul>
+</section>
+<section id="realistic-noise">
+<h2>Realistic noise<a class="headerlink" href="#realistic-noise" title="Link to this heading">#</a></h2>
+<p>Realistically noise and blur occur together. This time an image will be blured using the gaussian filter and then poisson noise will be added, to simulate realistic image acquisition conditions. The image will then be de-blured, using the convolution kernel.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using your existing variables</span>
+
+<span class="n">gaussian_kernel3</span> <span class="o">=</span> <span class="n">gaussian_normalised_kernel</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">no_blur_kernel</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[[[</span><span class="mf">1.0</span><span class="p">]]]])</span>  <span class="c1"># Identity kernel for no blur</span>
+
+<span class="n">blur_levels</span> <span class="o">=</span>  <span class="p">[(</span><span class="n">no_blur_kernel</span><span class="p">,</span> <span class="s1">&#39;No Blur&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">gaussian_kernel2</span><span class="p">,</span> <span class="s1">&#39;Light Blur (σ=1.0)&#39;</span><span class="p">),</span> 
+                <span class="p">(</span><span class="n">gaussian_kernel1</span><span class="p">,</span> <span class="s1">&#39;Heavy Blur (σ=2.0)&#39;</span><span class="p">)]</span>
+<span class="n">noise_levels</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">50000000</span><span class="p">,</span> <span class="s1">&#39;No Noise&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s1">&#39;Medium Noise&#39;</span><span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;High Noise&#39;</span><span class="p">)]</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">noise_levels</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">blur_levels</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">noise_scale</span><span class="p">,</span> <span class="n">noise_label</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">noise_levels</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="p">(</span><span class="n">kernel</span><span class="p">,</span> <span class="n">blur_label</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">blur_levels</span><span class="p">):</span>
+        <span class="c1"># Blur then add noise</span>
+        <span class="n">blurred</span> <span class="o">=</span> <span class="n">convolution</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
+        <span class="n">noisy_blurred</span> <span class="o">=</span> <span class="n">add_poisson_noise</span><span class="p">(</span><span class="n">blurred</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">noise_scale</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kernel</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">no_blur_kernel</span><span class="p">):</span>
+            <span class="n">deblured</span> <span class="o">=</span> <span class="n">noisy_blurred</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">deblured</span> <span class="o">=</span> <span class="n">deconvolution</span><span class="p">(</span><span class="n">noisy_blurred</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">deblured</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">([])</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([])</span>
+        
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">blur_label</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">noise_label</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+        
+
+<span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="s1">&#39;Increasing Blur →&#39;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;← Increasing Noise&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mf">0.08</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="mf">0.08</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/86e3717842f5af78f1667f79b7a038c3a331043f61744033e70d45064781213d.png" src="../_images/86e3717842f5af78f1667f79b7a038c3a331043f61744033e70d45064781213d.png" />
+</div>
+</div>
+</section>
+<section id="id3">
+<h2>Discussion<a class="headerlink" href="#id3" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Blur on its own can be successfully removed using de convolution.</p></li>
+<li><p>However when noise is added the de convolution process generates artifacts which makes it even more difficult to recover the original image.</p></li>
+<li><p>After noise present after the de convolution process is no longer random but seems to have more structure than the original noise since there are more distinct patches of black and white.</p></li>
+<li><p>This noise due to noise and blur is more visually disturbing than noise or blur.</p></li>
+</ul>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h2>
+<p>De convolution was used to de blur images which had been convolved with a known kernel. This worked very well for images which had been blurred but not corrupted with noise. But realistically acquired images will be blurred and will have noise on top of this. De convoluting the noisy images did not work well and created artifacts in the image, which was visually more disturbing than gaussian noise.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./Week2"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="12DFowierTransforms.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Fourier Transforms in 2D</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../Week3/1richardsonlucy.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Richardson Lucy Algorithm</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contents">Contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#load-images">Load images</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shot-noise-poisson-noise">Shot noise (poisson noise)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#method">Method</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#results">Results</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-in-2d">Filtering in 2D</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#filtering-example-the-box-filter">Filtering Example: The box filter</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convolution">Convolution</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-box-filter">The box filter</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-box-functions">Creating box functions</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#carry-out-convolution">Carry out convolution</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#discussion">Discussion</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#de-convolution">De-convolution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convolving-and-then-de-convolving-the-image">Convolving and then de-convolving the image</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gaussian-filters">Gaussian filters</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#realistic-noise">Realistic noise</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By Malachi Hibbins
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
