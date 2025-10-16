@@ -1,11 +1,21 @@
-# Table of contents
-# Learn more at https://jupyterbook.org/customize/toc.html
-
 format: jb-book
 root: intro
-chapters:
-- file: Week1/1PytorchTutorial.ipynb
-- file: Week2/12DFowierTransforms.ipynb
-- file: Week2/2ImageDebluring.ipynb
-- file: Week3/1richardsonlucy.ipynb
+parts:
+- caption: Week 1 - PyTorch Fundamentals
+  chapters:
+  - file: Week1/1PytorchTutorial
+    title: PyTorch Tutorial
 
+- caption: Week 2 - Deblurring Methods
+  chapters:
+  - file: Week2/12DFowierTransforms
+    title: 2D Fourier Transforms
+  - file: Week2/2ImageDebluring  
+    title: Image Deblurring
+
+- caption: Week 3 - Richardson and Lucy Algorithm
+  chapters:
+  - file: Week3/1richardsonlucy
+    title: Richardson-Lucy Algorithm
+  - file: Week3/2richardsonlucy
+    title: Tuning Richardson-Lucy 
