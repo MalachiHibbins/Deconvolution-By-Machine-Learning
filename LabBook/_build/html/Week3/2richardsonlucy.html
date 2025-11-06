@@ -62,6 +62,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'Week3/2richardsonlucy';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Neural Networks for Image De-noising" href="../Week5/MachineLearning.html" />
     <link rel="prev" title="Richardson Lucy Algorithm" href="1richardsonlucy.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -189,11 +190,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../Week2/12DFowierTransforms.html">2D Fourier Transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Week2/2ImageDebluring.html">Image Deblurring</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 3 - Richardson and Lucy Algorithm</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 3 and 4 - Richardson and Lucy Algorithm</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="1richardsonlucy.html">Richardson-Lucy Algorithm</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Tuning the Richardson-Lucy Algorithm with 1D functions</a></li>
 
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 5 - Neural Networks</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Week5/MachineLearning.html">Neural Networks for Image De-noising</a></li>
 </ul>
 
     </div>
@@ -392,8 +397,10 @@ document.write(`
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Tuning the Richardson-Lucy Algorithm with 1D functions</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#aims">Aims</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deconvolving-a-1d-signal">Deconvolving a 1D signal</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#padding">Padding</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#measures-of-image-quality">Measures of image quality</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#number-of-iterations">Number of iterations</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discussion">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conclusion">Conclusion</a></li>
 </ul>
 </li>
 </ul>
@@ -417,7 +424,7 @@ document.write(`
 <ul class="simple">
 <li><p>Understand how random noise is changed by convolution</p></li>
 <li><p>Test the Richardson-Lucy Algorithm (RLA) in 1D</p></li>
-<li><p>Tune the RLA parameters in order to maximize <span class="math notranslate nohighlight">\(R^2\)</span> and minimize MSE</p></li>
+<li><p>Tune the RLA parameters in order to maximize PSNR (peak signal to noise ratio) and SSIM (structural similarity index measure).</p></li>
 </ul>
 <section id="deconvolving-a-1d-signal">
 <h2>Deconvolving a 1D signal<a class="headerlink" href="#deconvolving-a-1d-signal" title="Link to this heading">#</a></h2>
@@ -450,30 +457,30 @@ document.write(`
     <span class="n">img_tensor</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>  <span class="c1"># Remove channel dimension</span>
     <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">1000</span><span class="p">),</span> <span class="n">img_tensor</span>
 
-<span class="n">num_iters</span> <span class="o">=</span> <span class="mi">6</span>
-<span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">5000</span>
 
-<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">step_function</span><span class="p">()</span>
-<span class="n">signal</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Add batch and channel dimensions</span>
-<span class="n">kernel</span> <span class="o">=</span> <span class="n">gaussian_normalised_kernel_1D</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="mi">61</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">plot_deblurring_example</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">padding_mode</span> <span class="o">=</span> <span class="s1">&#39;replicate&#39;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">num_iters</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">5000</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">func</span><span class="p">()</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Add batch and channel dimensions</span>
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">gaussian_normalised_kernel_1D</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="mi">61</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">)</span>
 
-<span class="n">blurred_signal</span> <span class="o">=</span> <span class="n">convolution_1D</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
-<span class="n">measured_signal</span> <span class="o">=</span> <span class="n">add_poisson_noise</span><span class="p">(</span><span class="n">blurred_signal</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">scale_factor</span><span class="p">)</span>
+    <span class="n">blurred_signal</span> <span class="o">=</span> <span class="n">convolution_1D</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="n">padding_mode</span><span class="p">)</span>
+    <span class="n">measured_signal</span> <span class="o">=</span> <span class="n">add_poisson_noise</span><span class="p">(</span><span class="n">blurred_signal</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">scale_factor</span><span class="p">)</span>
 
-<span class="n">deblurred_signal</span> <span class="o">=</span> <span class="n">richardson_lucy</span><span class="p">(</span><span class="n">measured_signal</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">num_iters</span><span class="o">=</span><span class="n">num_iters</span><span class="p">)</span>
+    <span class="n">deblurred_signal</span> <span class="o">=</span> <span class="n">richardson_lucy</span><span class="p">(</span><span class="n">measured_signal</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">num_iters</span><span class="o">=</span><span class="n">num_iters</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="n">padding_mode</span><span class="p">)</span>
 
-<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Step Function&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kernel</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Gaussian Kernel (1D)&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">measured_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Measured Signal (Blurred + Noisy)&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">blurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Blurred Signal&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Deblurred Signal (Richardson-Lucy, </span><span class="si">{</span><span class="n">num_iters</span><span class="si">}</span><span class="s1"> iters)&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Step Function&#39;</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">measured_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Measured Signal (Blurred + Noisy)&#39;</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">blurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Blurred Signal&#39;</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Estimated Signal (Richardson-Lucy, </span><span class="si">{</span><span class="n">num_iters</span><span class="si">}</span><span class="s1"> iters)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -491,113 +498,179 @@ document.write(`
 </div>
 </div>
 </section>
+<section id="padding">
+<h2>Padding<a class="headerlink" href="#padding" title="Link to this heading">#</a></h2>
+<p>After a convolution the size of the image decreases since the kernel cannot be applied around edge pixels. For a kernel of size <span class="math notranslate nohighlight">\(n\)</span> and an image of size <span class="math notranslate nohighlight">\(m\)</span> the convoluted image will have size <span class="math notranslate nohighlight">\(m-n+1\)</span>. This is problematic since the LRA requires the measured image and the kernel to be the same size. Padding increases the size of the image by adding pixels around the edge.</p>
+<ul class="simple">
+<li><p>Zeros padding: the easiest to implement form of padding. The edge pixels are set to zero. The problem with zeros padding is that overtime it will decrease the overall brightness of the image starting from the edges. This means that a more iterations will gradually decrease the brightness of the image.</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_deblurring_example</span><span class="p">(</span><span class="n">pigeon_function</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="s1">&#39;zeros&#39;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Zeros Padding&#39;</span><span class="p">,</span> <span class="n">num_iters</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span> 
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/9be7970820efa6a8db0a54c3066427280350df346064cf29664a76647acac68a.png" src="../_images/9be7970820efa6a8db0a54c3066427280350df346064cf29664a76647acac68a.png" />
+</div>
+</div>
+<p>The measured signal is far from the true signal since the edge pixels are much darker due to the zeros padding. Here there are also erroneous results since some pixel intensities are greater than 1.</p>
+<ul class="simple">
+<li><p>replicate padding repeats the value of the edge pixels. This means that the overall image is not darkened like when using zeros padding.</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_deblurring_example</span><span class="p">(</span><span class="n">pigeon_function</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="s1">&#39;replicate&#39;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Replicate Padding&#39;</span><span class="p">,</span> <span class="n">num_iters</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/fadf18456472bd1cd489bb492c1e207b53235df0e05464e6be719f2eddef3dc4.png" src="../_images/fadf18456472bd1cd489bb492c1e207b53235df0e05464e6be719f2eddef3dc4.png" />
+</div>
+</div>
+<p>The replicate padding works much more successfully as there isn’t issues around edge pixels. The image will not lose brightness over time.</p>
+</section>
+<section id="measures-of-image-quality">
+<h2>Measures of image quality<a class="headerlink" href="#measures-of-image-quality" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(R^2\)</span> measures the correlation between the estimated signal and the true signal. However this has low human visual relevance. A higher <span class="math notranslate nohighlight">\(R^2\)</span> indicates that the overall shape of the estimated signal is a close match to the true signal.</p></li>
+<li><p>MSE measures the average squared difference between the estimated signal and the true signal. Again this has low human visual relevance. This doesn’t capture perceptual image quality well. A lower MSE indicates a higher quality image.</p></li>
+<li><p>The PSNR is the logarithmic ratio between signal power to error power and is given in db since its logarithmic. This has a higher visual relevance compared to MSE. A value between 30 and 50 db indicates that the image is a good quality. Below 25db indicates heavy distortion or noise.</p></li>
+<li><p>The SSIM compares the luminance, contrast and structure of the estimated signal to the true signal. This has a high visual relevance. A SSIM of 1 indicates a perfect match to the true signal a SSIM of above 0.97 indicates a good match a SSIM of below 0.95 indicates significant degregation.</p></li>
+</ul>
+</section>
 <section id="number-of-iterations">
 <h2>Number of iterations<a class="headerlink" href="#number-of-iterations" title="Link to this heading">#</a></h2>
-<p>Its also easier to find training datasets for machine learning algorithms in 1D. The Richardson lucy algorithm has 3 “tuning parameters” the first is the convolution kernel which is assumed to be a guassian with known standard deviation. The second is the number of iterations the algorithm runs for. The third is the initial guess.</p>
+<p>Its also easier to find training datasets for machine learning algorithms in 1D. The Richardson lucy algorithm has 3 “tuning parameters” the first is the convolution kernel which is assumed to be a gaussian with known standard deviation. The second is the number of iterations the algorithm runs for. The third is the initial guess. The following graphs show how the number of iterations of the RLA effects how close the estimated signal is to the true signal. The results from this section will be used to help train a machine learning algorithm to predict the optimal number of iterations for a given image.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torchmetrics</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">metrics</span>
 
-<span class="n">iters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">100</span><span class="p">]</span>
-<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">axs</span> <span class="o">=</span> <span class="n">axs</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">iters</span><span class="p">):</span>
-    <span class="n">deblurred_signal</span> <span class="o">=</span> <span class="n">richardson_lucy</span><span class="p">(</span><span class="n">measured_signal</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">num_iters</span><span class="o">=</span><span class="n">it</span><span class="p">)</span>
-    <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-    <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">measured_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-    <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-    <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-    <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s1">&#39;Deblurred Signal&#39;</span><span class="p">,</span> <span class="s1">&#39;Measured Signal&#39;</span><span class="p">,</span> <span class="s1">&#39;True Signal&#39;</span><span class="p">])</span>
-    <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Richardson-Lucy: </span><span class="si">{</span><span class="n">it</span><span class="si">}</span><span class="s1"> iters&#39;</span><span class="p">)</span>
-    <span class="n">r2</span> <span class="o">=</span> <span class="n">torchmetrics</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">r2_score</span><span class="p">(</span><span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-    <span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;R² = </span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">axs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">plot_iterations_example</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">padding_mode</span> <span class="o">=</span> <span class="s1">&#39;replicate&#39;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">5000</span>
+                            <span class="p">,</span> <span class="n">iters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">30</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">100</span><span class="p">],</span> <span class="n">plot_all</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">fig</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  
+    <span class="n">kernel</span> <span class="o">=</span> <span class="n">gaussian_normalised_kernel_1D</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="mi">61</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">)</span>
+    <span class="n">blurred_signal</span> <span class="o">=</span> <span class="n">convolution_1D</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="n">padding_mode</span><span class="p">)</span>
+    <span class="n">measured_signal</span> <span class="o">=</span> <span class="n">add_poisson_noise</span><span class="p">(</span><span class="n">blurred_signal</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">scale_factor</span><span class="p">)</span>
+    <span class="n">r2s</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">mses</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">PSNRs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">SSIMs</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">if</span> <span class="n">plot_all</span><span class="p">:</span>
+        <span class="n">fig1</span><span class="p">,</span> <span class="n">axs1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">axs1</span> <span class="o">=</span> <span class="n">axs1</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+        
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">iters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">deblurred_signal</span> <span class="o">=</span> <span class="n">richardson_lucy</span><span class="p">(</span><span class="n">measured_signal</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">num_iters</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="n">padding_mode</span><span class="p">)</span>
+        <span class="n">r2</span> <span class="o">=</span> <span class="n">torchmetrics</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">r2_score</span><span class="p">(</span><span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+        <span class="n">mse</span> <span class="o">=</span> <span class="n">torchmetrics</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span><span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+        <span class="n">r2s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r2</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+        <span class="n">mses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mse</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+        <span class="n">PSNR</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">mse</span><span class="p">)</span>
+        <span class="n">SSIM</span> <span class="o">=</span> <span class="n">metrics</span><span class="o">.</span><span class="n">structural_similarity</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">data_range</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">PSNRs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PSNR</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+        <span class="n">SSIMs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SSIM</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="n">iters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">iters</span> <span class="ow">and</span> <span class="n">plot_all</span><span class="p">:</span>
+            <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+            <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">measured_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+            <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+            <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+            <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s1">&#39;Estimated Signal&#39;</span><span class="p">,</span> <span class="s1">&#39;Measured Signal&#39;</span><span class="p">,</span> <span class="s1">&#39;True Signal&#39;</span><span class="p">])</span>
+            <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Richardson-Lucy: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1"> iters&#39;</span><span class="p">)</span>
+            <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;R² = </span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        
+    <span class="k">if</span> <span class="n">fig</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">axs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">PSNRs</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">label</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Iterations&#39;</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;PSNR&#39;</span><span class="p">)</span>
+
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">SSIMs</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">label</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Iterations&#39;</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;SSIM&#39;</span><span class="p">)</span>
+    
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span>
 </pre></div>
 </div>
-</div>
-<div class="cell_output docutils container">
-<img alt="../_images/d2dff3071e9cc0a76baeb5a765f018fa53cdef28ad915fe8efc2e27d3e16cc2d.png" src="../_images/d2dff3071e9cc0a76baeb5a765f018fa53cdef28ad915fe8efc2e27d3e16cc2d.png" />
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">r2s</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">mses</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">r2s2</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">mses2</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">r2s3</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">mses3</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">sin_function</span><span class="p">()</span>
-<span class="n">signal2</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  
-<span class="n">blured_signal2</span> <span class="o">=</span> <span class="n">convolution_1D</span><span class="p">(</span><span class="n">signal2</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
-<span class="n">measured_signal2</span> <span class="o">=</span> <span class="n">add_poisson_noise</span><span class="p">(</span><span class="n">blured_signal2</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">scale_factor</span><span class="p">)</span>
-
-<span class="n">x3</span><span class="p">,</span> <span class="n">y3</span> <span class="o">=</span> <span class="n">pigeon_function</span><span class="p">()</span>
-<span class="n">signal3</span> <span class="o">=</span> <span class="n">y3</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  
-<span class="n">blured_signal3</span> <span class="o">=</span> <span class="n">convolution_1D</span><span class="p">(</span><span class="n">signal3</span><span class="p">,</span> <span class="n">kernel</span><span class="p">)</span>
-<span class="n">measured_signal3</span> <span class="o">=</span> <span class="n">add_poisson_noise</span><span class="p">(</span><span class="n">blured_signal3</span><span class="p">,</span> <span class="n">scale_factor</span><span class="o">=</span><span class="n">scale_factor</span><span class="p">)</span>
-
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">101</span><span class="p">):</span>
-    <span class="n">deblurred_signal</span> <span class="o">=</span> <span class="n">richardson_lucy</span><span class="p">(</span><span class="n">measured_signal</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">num_iters</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">deblurred_signal2</span> <span class="o">=</span> <span class="n">richardson_lucy</span><span class="p">(</span><span class="n">measured_signal2</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">num_iters</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">deblurred_signal3</span> <span class="o">=</span> <span class="n">richardson_lucy</span><span class="p">(</span><span class="n">measured_signal3</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">num_iters</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
-    <span class="n">r2</span> <span class="o">=</span> <span class="n">torchmetrics</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">r2_score</span><span class="p">(</span><span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-    <span class="n">r22</span> <span class="o">=</span> <span class="n">torchmetrics</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">r2_score</span><span class="p">(</span><span class="n">deblurred_signal2</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">y2</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-    <span class="n">r23</span> <span class="o">=</span> <span class="n">torchmetrics</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">r2_score</span><span class="p">(</span><span class="n">deblurred_signal3</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">y3</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-    <span class="n">mse</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">deblurred_signal</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-    <span class="n">mse2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">deblurred_signal2</span> <span class="o">-</span> <span class="n">y2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-    <span class="n">mse3</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">deblurred_signal3</span> <span class="o">-</span> <span class="n">y3</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-    <span class="n">r2s</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r2</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
-    <span class="n">r2s2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r22</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
-    <span class="n">r2s3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r23</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
-    <span class="n">mses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mse</span><span class="p">)</span>
-    <span class="n">mses2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mse2</span><span class="p">)</span>
-    <span class="n">mses3</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mse3</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
-
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">measured_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">r2s</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Iterations&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;R²&#39;</span><span class="p">)</span>
-
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">mses</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Iterations&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
-
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">measured_signal2</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">r2s2</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Iterations&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;R²&#39;</span><span class="p">)</span>
-
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">mses2</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Iterations&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
-
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">measured_signal3</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
-
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">r2s3</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Iterations&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;R²&#39;</span><span class="p">)</span>
-
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">mses3</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Iterations&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;MSE&#39;</span><span class="p">)</span>
-
-<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_iterations_example</span><span class="p">(</span><span class="n">step_function</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="s1">&#39;replicate&#39;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Replicate Padding&#39;</span><span class="p">,</span> <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">iters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">200</span><span class="p">],</span> <span class="n">period</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/70bfa203975843e189f1b564b12996b373b7cb398fef7ed9e93cbb2934616890.png" src="../_images/70bfa203975843e189f1b564b12996b373b7cb398fef7ed9e93cbb2934616890.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>100.0 %9999999999 %%
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1200x500 with 2 Axes&gt;,
+ array([&lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;PSNR&#39;&gt;,
+        &lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;SSIM&#39;&gt;], dtype=object))
+</pre></div>
+</div>
+<img alt="../_images/726bd6ab4ee57d97ade00e3b7e15516ba7cae4a775aa6ace1bbc89fef97695c8.png" src="../_images/726bd6ab4ee57d97ade00e3b7e15516ba7cae4a775aa6ace1bbc89fef97695c8.png" />
+<img alt="../_images/dcb8e9c3498a70f82a85a20efe1321c25509674ebdc57a8319ec4da3462cf51b.png" src="../_images/dcb8e9c3498a70f82a85a20efe1321c25509674ebdc57a8319ec4da3462cf51b.png" />
 </div>
 </div>
+<p>When the number of iterations are low the estimated signal is smooth and this doesn’t reflect the shape of the true signal, especially around the vertical lines. As the number of iterations increases the shape of the estimated signal improves. The steepness of the lines from where the square wave changes value value increases. However as the number of iterations increases the noise from the estimated signal also increases. Often the signal will become noisy even when there is no noise in the measured signal.</p>
+<p>It is clear from both the graph of <span class="math notranslate nohighlight">\(R^2\)</span> score against iteration and the graph of MSE against iteration that the RLA is converging towards a solution. This solution doesn’t appear to be the optimal solution since after 200 iterations the <span class="math notranslate nohighlight">\(R^2\)</span> value hadn’t yet hit <span class="math notranslate nohighlight">\(0.95\)</span>. Similarly the MSE seems to be converging to a value at about <span class="math notranslate nohighlight">\(0.003\)</span>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_iterations_example</span><span class="p">(</span><span class="n">sin_function</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="s1">&#39;replicate&#39;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Replicate Padding&#39;</span><span class="p">,</span> <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">iters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>100.0 %9999999999 %%
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1200x500 with 2 Axes&gt;,
+ array([&lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;PSNR&#39;&gt;,
+        &lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;SSIM&#39;&gt;], dtype=object))
+</pre></div>
+</div>
+<img alt="../_images/72a6fdfd5539ac92f3b9e4064404afa3c9430cf8fb4700b9f7f2328c83f2b5f0.png" src="../_images/72a6fdfd5539ac92f3b9e4064404afa3c9430cf8fb4700b9f7f2328c83f2b5f0.png" />
+<img alt="../_images/df1f3d557285c508dd459f98fd9079e46ef9691c03d025e77607dd3140053ec5.png" src="../_images/df1f3d557285c508dd459f98fd9079e46ef9691c03d025e77607dd3140053ec5.png" />
+</div>
+</div>
+<p>In this example the convolution doesn’t make so much difference to the true signal as its smoother. This means that there is less to be gained by carrying out more iterations of the RLA since the shape of the signal is already satisfactory. Carrying out more iterations just adds noise to the signal although this seems relativly insignificant as seen from the very large <span class="math notranslate nohighlight">\(R^2\)</span> value of <span class="math notranslate nohighlight">\(0.998\)</span>.</p>
+<p>Here the RLA initially gets very close to the true signal but then starts to diverge after 10 iterations. The reasons for this are unclear but may be to do with specific frequencies which the RLA is amplifying. By extending the graph it is clear that it doesn’t seem to a solution after 1000 iterations, perhaps the rate of convergence is very slow.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plot_iterations_example</span><span class="p">(</span><span class="n">pigeon_function</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="s1">&#39;replicate&#39;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Replicate Padding&#39;</span><span class="p">,</span> <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">iters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">200</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>100.0 %9999999999 %%
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1200x500 with 2 Axes&gt;,
+ array([&lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;PSNR&#39;&gt;,
+        &lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;SSIM&#39;&gt;], dtype=object))
+</pre></div>
+</div>
+<img alt="../_images/5b1eb47f246db12edf51e1ccbb9f2bf484cdc47b9e74ee0adc96ed8205a8c86a.png" src="../_images/5b1eb47f246db12edf51e1ccbb9f2bf484cdc47b9e74ee0adc96ed8205a8c86a.png" />
+<img alt="../_images/4a8ee495475f16e71c32f3d3b0b2948a9e26a55c7a99f601a29750b51fe808e6.png" src="../_images/4a8ee495475f16e71c32f3d3b0b2948a9e26a55c7a99f601a29750b51fe808e6.png" />
+</div>
+</div>
+<p>After about 4 iterations the RLA has got as close as it gets to the true signal with a <span class="math notranslate nohighlight">\(R^2\)</span> of about 0.993. After this the RLA diverges away from the true signal as the estimated signal becomes very noisy. The divergence in this case is much worse than in the previous example. This suggests that the number of iterations is an important variable to tune using machine learning.</p>
 </section>
-<section id="discussion">
-<h2>Discussion<a class="headerlink" href="#discussion" title="Link to this heading">#</a></h2>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading">#</a></h2>
+<p>Padding is necessary to keep the signal size the same after convolution which is essential in the RLA. Replicate padding doesn’t cause the images to darken over time and prevents artifacts being introduced into the solution due to boundary effects.</p>
+<p>The number of iterations effects how close the estimated signal can get to the true signal. Selecting a number of iterations is a tradeoff between how well the shape of the estimated signal matches the true signal and how noisy the estimated signal is. The optimal number of iterations seems to be lower for real world signals perhaps due to the different frequency components of the signal.</p>
 </section>
 </section>
 
@@ -640,6 +713,15 @@ document.write(`
         <p class="prev-next-title">Richardson Lucy Algorithm</p>
       </div>
     </a>
+    <a class="right-next"
+       href="../Week5/MachineLearning.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Neural Networks for Image De-noising</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
                 </footer>
               
@@ -659,8 +741,10 @@ document.write(`
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Tuning the Richardson-Lucy Algorithm with 1D functions</a></li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#aims">Aims</a><ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#deconvolving-a-1d-signal">Deconvolving a 1D signal</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#padding">Padding</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#measures-of-image-quality">Measures of image quality</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#number-of-iterations">Number of iterations</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#discussion">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#conclusion">Conclusion</a></li>
 </ul>
 </li>
 </ul>

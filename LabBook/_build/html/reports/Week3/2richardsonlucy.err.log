@@ -44,30 +44,30 @@ def pigeon_function():
     img_tensor = transform(image).squeeze()  # Remove channel dimension
     return torch.linspace(0, 10, steps=1000), img_tensor
 
-num_iters = 6
-scale_factor = 5000
 
-x, y = step_function()
-signal = y.unsqueeze(0).unsqueeze(0)  # Add batch and channel dimensions
-kernel = gaussian_normalised_kernel_1D(size = 61, sigma = 10.0)
+def plot_deblurring_example(func, padding_mode = 'replicate', title = None, num_iters = 10, scale_factor = 5000):
+    if title is None:
+        title = func.__name__.replace('_', ' ').title()
+    x, y = func()
+    signal = y.unsqueeze(0).unsqueeze(0)  # Add batch and channel dimensions
+    kernel = gaussian_normalised_kernel_1D(size = 61, sigma = 10.0)
 
-blurred_signal = convolution_1D(signal, kernel)
-measured_signal = add_poisson_noise(blurred_signal, scale_factor=scale_factor)
+    blurred_signal = convolution_1D(signal, kernel, padding_mode=padding_mode)
+    measured_signal = add_poisson_noise(blurred_signal, scale_factor=scale_factor)
 
-deblurred_signal = richardson_lucy(measured_signal, kernel, num_iters=num_iters)
+    deblurred_signal = richardson_lucy(measured_signal, kernel, num_iters=num_iters, padding_mode=padding_mode)
 
-fig, axs = plt.subplots(3, 2, figsize=(12, 8))
-axs[0, 0].plot(y)
-axs[0, 0].set_title('Step Function')
-axs[1, 0].plot(kernel.squeeze())
-axs[1, 0].set_title('Gaussian Kernel (1D)')
-axs[2, 0].plot(measured_signal.squeeze())
-axs[2, 0].set_title('Measured Signal (Blurred + Noisy)')
-axs[0, 1].plot(blurred_signal.squeeze())
-axs[0, 1].set_title('Blurred Signal')
-axs[2, 1].plot(deblurred_signal.squeeze())
-axs[2, 1].set_title(f'Deblurred Signal (Richardson-Lucy, {num_iters} iters)')
-plt.tight_layout()
+    fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+    fig.suptitle(title, fontsize=16)
+    axs[0, 0].plot(y)
+    axs[0, 0].set_title('Step Function')
+    axs[1, 0].plot(measured_signal.squeeze())
+    axs[1, 0].set_title('Measured Signal (Blurred + Noisy)')
+    axs[0, 1].plot(blurred_signal.squeeze())
+    axs[0, 1].set_title('Blurred Signal')
+    axs[1, 1].plot(deblurred_signal.squeeze())
+    axs[1, 1].set_title(f'Estimated Signal (Richardson-Lucy, {num_iters} iters)')
+    plt.tight_layout()
 ------------------
 
 

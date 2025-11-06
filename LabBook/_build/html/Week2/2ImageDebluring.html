@@ -190,9 +190,15 @@
 <li class="toctree-l1"><a class="reference internal" href="12DFowierTransforms.html">2D Fourier Transforms</a></li>
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Image Deblurring</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 3 - Advanced Algorithms</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 3 and 4 - Richardson and Lucy Algorithm</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../Week3/1richardsonlucy.html">Richardson-Lucy Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Week3/2richardsonlucy.html">Tuning the Richardson-Lucy Algorithm with 1D functions</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 5 - Neural Networks</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Week5/MachineLearning.html">Neural Networks for Image De-noising</a></li>
 </ul>
 
     </div>
@@ -407,6 +413,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#de-convolution">De-convolution</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convolving-and-then-de-convolving-the-image">Convolving and then de-convolving the image</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#padding">Padding</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gaussian-filters">Gaussian filters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Discussion</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#realistic-noise">Realistic noise</a></li>
@@ -651,7 +658,7 @@ Convolution corresponds to numerically represents multiplication of every value 
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 
 <span class="k">def</span> <span class="nf">convolution</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">kernel</span><span class="p">):</span>
-    
+    <span class="c1"># zero padding is used </span>
     <span class="c1"># Apply convolution with padding to maintain image size</span>
     <span class="n">padding</span> <span class="o">=</span> <span class="p">(</span><span class="n">kernel</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">kernel</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">filtered</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">)</span>
@@ -758,13 +765,17 @@ Since the convolution kernel for the blured images is known the original image c
 <li><p>The deconvolution process is not perfect. Artifacts are introduced in the image, especially around the edges potentially due to boundary effects and noise amplification.</p></li>
 <li><p>Furthermore, the box filter is not a perfect low-pass filter. While it should attenuate higher frequencies, this doesn’t always work due to its frequency response characteristics.</p></li>
 <li><p><strong>Counter-example</strong>: A high frequency alternating signal <span class="math notranslate nohighlight">\(p(x) = [..., 1, -1, 1, -1, 1, ...]\)</span> convolved with a 1×1 box filter:
-$<span class="math notranslate nohighlight">\(p'(x) = p(x) * \text{box}_1(x) = p(x)\)</span>$
+$<span class="math notranslate nohighlight">\(p'(x) = p(x) * \text{box}_1(x)\)</span>$
 The high frequency signal passes through unchanged.</p></li>
 <li><p><strong>Example of lower frequency attenuation</strong>: A lower frequency signal <span class="math notranslate nohighlight">\(p(x) = [..., 1, -0.5, -0.5, 1, -0.5, -0.5, ...]\)</span> when convolved with <span class="math notranslate nohighlight">\(\text{box}_1\)</span> gives <span class="math notranslate nohighlight">\(\mathbb{0}\)</span>, showing selective frequency attenuation.</p></li>
 <li><p>Box filters give each pixel within the “box” equal weighting. In reality pixels closer to the middle will have larger weighting</p></li>
 <li><p>Convolving a box filter on a box filter does not give a box filter. This is a problem since applying a box filter twice isn’t doubling the amount of “blur”.</p></li>
 <li><p>Division by small values in <span class="math notranslate nohighlight">\(H(k)\)</span> can amplify noise and introduce artifacts. Especially as the box filter may attenuate certain frequencies to near zero.</p></li>
 </ul>
+</section>
+<section id="padding">
+<h2>Padding<a class="headerlink" href="#padding" title="Link to this heading">#</a></h2>
+<p>Padding is likely the cause of some of the artifacts seen in the de-blurred images. When convolving near the edges of an image, there are not enough surrounding pixels to apply the filter properly. Padding adds extra pixels around the border of the image to mitigate this issue. In this case</p>
 </section>
 <section id="gaussian-filters">
 <h2>Gaussian filters<a class="headerlink" href="#gaussian-filters" title="Link to this heading">#</a></h2>
@@ -986,6 +997,7 @@ Where \)</span>\sigma<span class="math notranslate nohighlight">\( is the standa
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#de-convolution">De-convolution</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convolving-and-then-de-convolving-the-image">Convolving and then de-convolving the image</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Discussion</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#padding">Padding</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#gaussian-filters">Gaussian filters</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Discussion</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#realistic-noise">Realistic noise</a></li>

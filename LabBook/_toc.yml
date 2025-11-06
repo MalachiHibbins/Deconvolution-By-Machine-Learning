@@ -13,9 +13,13 @@ parts:
   - file: Week2/2ImageDebluring  
     title: Image Deblurring
 
-- caption: Week 3 - Richardson and Lucy Algorithm
+- caption: Week 3 and 4 - Richardson and Lucy Algorithm
   chapters:
   - file: Week3/1richardsonlucy
     title: Richardson-Lucy Algorithm
   - file: Week3/2richardsonlucy
     title: Tuning Richardson-Lucy 
+
+- caption: Week 5 - Neural Networks
+  chapters:
+  - file: Week5/MachineLearning
