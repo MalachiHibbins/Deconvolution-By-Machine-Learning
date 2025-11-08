@@ -117,3 +117,13 @@ def deconvolution_1D(signal, kernel):
     deconvolved_ft = signal_ft / kernel_ft
     deconvolved = torch.fft.ifft(deconvolved_ft).real
     return deconvolved
+
+def degrade_image(image, kernel = gaussian_normalised_kernel(21, 5), noise_scale=1000, padding_mode='zeros'):
+    blurred = convolution(image, kernel, padding_mode=padding_mode)
+    noisy_blurred = add_poisson_noise(blurred, scale_factor=noise_scale)
+    return noisy_blurred
+
+def degrade_image_1D(signal, kernel = gaussian_normalised_kernel_1D(), noise_scale=1000, padding_mode='zeros'):
+    blurred = convolution_1D(signal, kernel, padding_mode=padding_mode)
+    noisy_blurred = add_poisson_noise(blurred, scale_factor=noise_scale)
+    return noisy_blurred
