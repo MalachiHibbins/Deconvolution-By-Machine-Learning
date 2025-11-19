@@ -62,7 +62,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'Week3/2richardsonlucy';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Neural Networks for Image De-noising" href="../Week5/MachineLearning.html" />
+    <link rel="next" title="Neural Networks for Image De-noising" href="../Week7/MachineLearningFunction.html" />
     <link rel="prev" title="Richardson Lucy Algorithm" href="1richardsonlucy.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -196,9 +196,9 @@
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Tuning the Richardson-Lucy Algorithm with 1D functions</a></li>
 
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 5 - Neural Networks</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 5-8 - Neural Networks</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../Week5/MachineLearning.html">Neural Networks for Image De-noising</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Week7/MachineLearningFunction.html">Neural Networks for Image De-noising</a></li>
 </ul>
 
     </div>
@@ -511,7 +511,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/9be7970820efa6a8db0a54c3066427280350df346064cf29664a76647acac68a.png" src="../_images/9be7970820efa6a8db0a54c3066427280350df346064cf29664a76647acac68a.png" />
+<img alt="../_images/f682e7c774a672e5104de5920d433e1c90133dd6a77b437a11840d27101c3224.png" src="../_images/f682e7c774a672e5104de5920d433e1c90133dd6a77b437a11840d27101c3224.png" />
 </div>
 </div>
 <p>The measured signal is far from the true signal since the edge pixels are much darker due to the zeros padding. Here there are also erroneous results since some pixel intensities are greater than 1.</p>
@@ -525,7 +525,7 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/fadf18456472bd1cd489bb492c1e207b53235df0e05464e6be719f2eddef3dc4.png" src="../_images/fadf18456472bd1cd489bb492c1e207b53235df0e05464e6be719f2eddef3dc4.png" />
+<img alt="../_images/040571555b77b263325d200b73ee59db367ddec467a0c80b4ff037f4ee96c655.png" src="../_images/040571555b77b263325d200b73ee59db367ddec467a0c80b4ff037f4ee96c655.png" />
 </div>
 </div>
 <p>The replicate padding works much more successfully as there isn’t issues around edge pixels. The image will not lose brightness over time.</p>
@@ -560,7 +560,7 @@ document.write(`
     <span class="n">SSIMs</span> <span class="o">=</span> <span class="p">[]</span>
     
     <span class="k">if</span> <span class="n">plot_all</span><span class="p">:</span>
-        <span class="n">fig1</span><span class="p">,</span> <span class="n">axs1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">fig1</span><span class="p">,</span> <span class="n">axs1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">axs1</span> <span class="o">=</span> <span class="n">axs1</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
         
@@ -581,7 +581,7 @@ document.write(`
             <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">measured_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
             <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
             <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
-            <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s1">&#39;Estimated Signal&#39;</span><span class="p">,</span> <span class="s1">&#39;Measured Signal&#39;</span><span class="p">,</span> <span class="s1">&#39;True Signal&#39;</span><span class="p">])</span>
+            <span class="c1">#axs1[j].legend([&#39;Estimated Signal&#39;, &#39;Measured Signal&#39;, &#39;True Signal&#39;], framealpha=1.0)</span>
             <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Richardson-Lucy: </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1"> iters&#39;</span><span class="p">)</span>
             <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;R² = </span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
             <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -611,16 +611,25 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>100.0 %9999999999 %%
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>25.0 %999999999998 %
 </pre></div>
 </div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1200x500 with 2 Axes&gt;,
- array([&lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;PSNR&#39;&gt;,
-        &lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;SSIM&#39;&gt;], dtype=object))
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">IndexError</span><span class="g g-Whitespace">                                </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">plot_iterations_example</span><span class="p">(</span><span class="n">step_function</span><span class="p">,</span> <span class="n">padding_mode</span><span class="o">=</span><span class="s1">&#39;replicate&#39;</span><span class="p">,</span> <span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;Replicate Padding&#39;</span><span class="p">,</span> <span class="n">scale_factor</span> <span class="o">=</span> <span class="mi">5000</span><span class="p">,</span> <span class="n">iters</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">100</span><span class="p">,</span><span class="mi">200</span><span class="p">],</span> <span class="n">period</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">)</span>
+
+<span class="nn">Cell In[4], line 34,</span> in <span class="ni">plot_iterations_example</span><span class="nt">(func, padding_mode, title, scale_factor, iters, plot_all, fig, axs, label, **kwargs)</span>
+<span class="g g-Whitespace">     </span><span class="mi">31</span> <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="o">/</span><span class="n">iters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">33</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">iters</span> <span class="ow">and</span> <span class="n">plot_all</span><span class="p">:</span>
+<span class="ne">---&gt; </span><span class="mi">34</span>     <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">deblurred_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+<span class="g g-Whitespace">     </span><span class="mi">35</span>     <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">measured_signal</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">36</span>     <span class="n">axs1</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="ne">IndexError</span>: index 6 is out of bounds for axis 0 with size 6
 </pre></div>
 </div>
-<img alt="../_images/726bd6ab4ee57d97ade00e3b7e15516ba7cae4a775aa6ace1bbc89fef97695c8.png" src="../_images/726bd6ab4ee57d97ade00e3b7e15516ba7cae4a775aa6ace1bbc89fef97695c8.png" />
-<img alt="../_images/dcb8e9c3498a70f82a85a20efe1321c25509674ebdc57a8319ec4da3462cf51b.png" src="../_images/dcb8e9c3498a70f82a85a20efe1321c25509674ebdc57a8319ec4da3462cf51b.png" />
+<img alt="../_images/a2b70d72b7a2ea37a26bb6baa525ec3565f83256cecacab90fcf780476dbfb93.png" src="../_images/a2b70d72b7a2ea37a26bb6baa525ec3565f83256cecacab90fcf780476dbfb93.png" />
 </div>
 </div>
 <p>When the number of iterations are low the estimated signal is smooth and this doesn’t reflect the shape of the true signal, especially around the vertical lines. As the number of iterations increases the shape of the estimated signal improves. The steepness of the lines from where the square wave changes value value increases. However as the number of iterations increases the noise from the estimated signal also increases. Often the signal will become noisy even when there is no noise in the measured signal.</p>
@@ -640,8 +649,8 @@ document.write(`
         &lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;SSIM&#39;&gt;], dtype=object))
 </pre></div>
 </div>
-<img alt="../_images/72a6fdfd5539ac92f3b9e4064404afa3c9430cf8fb4700b9f7f2328c83f2b5f0.png" src="../_images/72a6fdfd5539ac92f3b9e4064404afa3c9430cf8fb4700b9f7f2328c83f2b5f0.png" />
-<img alt="../_images/df1f3d557285c508dd459f98fd9079e46ef9691c03d025e77607dd3140053ec5.png" src="../_images/df1f3d557285c508dd459f98fd9079e46ef9691c03d025e77607dd3140053ec5.png" />
+<img alt="../_images/6db4bdb04d9021f7ceabe2dd3de51ef764e5806281255bbe6d275d4b6706dad2.png" src="../_images/6db4bdb04d9021f7ceabe2dd3de51ef764e5806281255bbe6d275d4b6706dad2.png" />
+<img alt="../_images/1f7fad8baf6e2ced99b2050eb1af764642a65d54dca0c8fc7ecb11fed3d37e15.png" src="../_images/1f7fad8baf6e2ced99b2050eb1af764642a65d54dca0c8fc7ecb11fed3d37e15.png" />
 </div>
 </div>
 <p>In this example the convolution doesn’t make so much difference to the true signal as its smoother. This means that there is less to be gained by carrying out more iterations of the RLA since the shape of the signal is already satisfactory. Carrying out more iterations just adds noise to the signal although this seems relativly insignificant as seen from the very large <span class="math notranslate nohighlight">\(R^2\)</span> value of <span class="math notranslate nohighlight">\(0.998\)</span>.</p>
@@ -661,8 +670,8 @@ document.write(`
         &lt;Axes: xlabel=&#39;Iterations&#39;, ylabel=&#39;SSIM&#39;&gt;], dtype=object))
 </pre></div>
 </div>
-<img alt="../_images/5b1eb47f246db12edf51e1ccbb9f2bf484cdc47b9e74ee0adc96ed8205a8c86a.png" src="../_images/5b1eb47f246db12edf51e1ccbb9f2bf484cdc47b9e74ee0adc96ed8205a8c86a.png" />
-<img alt="../_images/4a8ee495475f16e71c32f3d3b0b2948a9e26a55c7a99f601a29750b51fe808e6.png" src="../_images/4a8ee495475f16e71c32f3d3b0b2948a9e26a55c7a99f601a29750b51fe808e6.png" />
+<img alt="../_images/ab11251717e1b743d799d9468b97ddfd6187a313473ffdc0b8f9d0fd965165f4.png" src="../_images/ab11251717e1b743d799d9468b97ddfd6187a313473ffdc0b8f9d0fd965165f4.png" />
+<img alt="../_images/ea7c37fa294ecd32d26a0cb84588f82e8ffc3a39f2c4f4c6c180654a57e20026.png" src="../_images/ea7c37fa294ecd32d26a0cb84588f82e8ffc3a39f2c4f4c6c180654a57e20026.png" />
 </div>
 </div>
 <p>After about 4 iterations the RLA has got as close as it gets to the true signal with a <span class="math notranslate nohighlight">\(R^2\)</span> of about 0.993. After this the RLA diverges away from the true signal as the estimated signal becomes very noisy. The divergence in this case is much worse than in the previous example. This suggests that the number of iterations is an important variable to tune using machine learning.</p>
@@ -714,7 +723,7 @@ document.write(`
       </div>
     </a>
     <a class="right-next"
-       href="../Week5/MachineLearning.html"
+       href="../Week7/MachineLearningFunction.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>

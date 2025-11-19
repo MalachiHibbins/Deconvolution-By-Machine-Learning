@@ -1,0 +1,64 @@
+Traceback (most recent call last):
+  File "/home/malchi/anaconda3/lib/python3.12/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+  File "/home/malchi/anaconda3/lib/python3.12/site-packages/nbclient/client.py", line 1305, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/malchi/anaconda3/lib/python3.12/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/malchi/anaconda3/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/malchi/anaconda3/lib/python3.12/site-packages/nbclient/client.py", line 705, in async_execute
+    await self.async_execute_cell(
+  File "/home/malchi/anaconda3/lib/python3.12/site-packages/nbclient/client.py", line 1058, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/home/malchi/anaconda3/lib/python3.12/site-packages/nbclient/client.py", line 914, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import torch
+import matplotlib.pyplot as plt
+from ImageDebluring import *
+from PIL import Image
+from torchvision import transforms
+
+
+def step_function(period=2.0):
+    xs = torch.linspace(-5, 5, steps=1000)
+    ys = (((xs.round() % period) == 0).float() + 0.2)/2
+    return xs, ys
+
+# convolve step function with a Gaussian kernel
+
+x, y = step_function()
+signal = y.unsqueeze(0).unsqueeze(0)  # Add batch and channel dimensions
+kernel = gaussian_normalised_kernel_1D(size = 61, sigma = 10.0)
+
+blurred_signal = convolution_1D(signal, kernel, padding_mode="replicate")
+measured_signal = add_poisson_noise(blurred_signal, scale_factor=500)
+
+# Plot the results
+fig, axs = plt.subplots(2, 1, figsize=(6, 8))
+axs[0].plot(x,y)
+axs[0].set_title("True Signal")
+axs[0].set_xlabel('Time (s)')
+axs[0].set_ylabel('Voltage (V)')
+axs[1].plot(x, measured_signal.squeeze().detach())
+axs[1].set_title("Measured Signal (Blurred + Noise)")
+axs[1].set_xlabel('Time (s)')
+axs[1].set_ylabel('Voltage (V)')
+fig.tight_layout()
+------------------
+
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mModuleNotFoundError[0m                       Traceback (most recent call last)
+Cell [0;32mIn[1], line 1[0m
+[0;32m----> 1[0m [38;5;28;01mimport[39;00m [38;5;21;01mtorch[39;00m
+[1;32m      2[0m [38;5;28;01mimport[39;00m [38;5;21;01mmatplotlib[39;00m[38;5;21;01m.[39;00m[38;5;21;01mpyplot[39;00m [38;5;28;01mas[39;00m [38;5;21;01mplt[39;00m
+[1;32m      3[0m [38;5;28;01mfrom[39;00m [38;5;21;01mImageDebluring[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+
+[0;31mModuleNotFoundError[0m: No module named 'torch'
+

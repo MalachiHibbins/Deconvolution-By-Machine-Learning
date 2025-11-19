@@ -62,6 +62,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'Week3/1richardsonlucy';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tuning the Richardson-Lucy Algorithm with 1D functions" href="2richardsonlucy.html" />
     <link rel="prev" title="Basics of image de-blurring" href="../Week2/2ImageDebluring.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -189,9 +190,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../Week2/12DFowierTransforms.html">2D Fourier Transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Week2/2ImageDebluring.html">Image Deblurring</a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 3 - Advanced Algorithms</span></p>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 3 and 4 - Richardson and Lucy Algorithm</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Richardson-Lucy Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2richardsonlucy.html">Tuning the Richardson-Lucy Algorithm with 1D functions</a></li>
+
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Week 5-8 - Neural Networks</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../Week7/MachineLearningFunction.html">Neural Networks for Image De-noising</a></li>
 </ul>
 
     </div>
@@ -428,10 +435,12 @@ $<span class="math notranslate nohighlight">\(\hat{f}_j^{t+1} = \hat{f}_j^{t}\su
 <li><p>The richardson lucy algorithm often converges as the process is self correcting [1].</p></li>
 </ul>
 <p>Using convolution the algorithm can be written for the 2D case:
-$<span class="math notranslate nohighlight">\(\hat{f}^{t+1} = \hat{f}^{t} \cdot \left(\frac{f'^t}{\hat{f'}^{t}}*k^* \right)\)</span>$</p>
+$<span class="math notranslate nohighlight">\(\hat{p}^{t+1} = \hat{p}^{t} \cdot \left(\frac{d^t}{\hat{d}^{t}}*q^* \right)\)</span>$</p>
 <ul class="simple">
-<li><p>Where <span class="math notranslate nohighlight">\(k^*\)</span> is the mirrored convolution kernel.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\hat{f'}\)</span> is the predicted light intensity in the observed image given as <span class="math notranslate nohighlight">\(\hat{f'}^{t} = \hat{f}^{t} * k\)</span>.</p></li>
+<li><p>Where <span class="math notranslate nohighlight">\(\hat{p}^{t}\)</span> is the <span class="math notranslate nohighlight">\(t\)</span> th estimated value of <span class="math notranslate nohighlight">\(p\)</span>.</p></li>
+<li><p>Where <span class="math notranslate nohighlight">\(q^*\)</span> is the mirrored convolution kernel.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\hat{d}\)</span> is the predicted light intensity in the observed image given as: <span class="math notranslate nohighlight">\(\hat{d}^{t} = \hat{p}^{t} * q\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{d^t_i}{\hat{d}^{t}_i}\)</span> is the correcting factor.</p></li>
 </ul>
 </section>
 <section id="basic-1d-implementat">
@@ -512,7 +521,7 @@ $<span class="math notranslate nohighlight">\(\hat{f}^{t+1} = \hat{f}^{t} \cdot 
 
 
 <span class="c1"># Display the results</span>
-<span class="n">figs</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
 <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img_tensor</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
 <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Original Image&#39;</span><span class="p">)</span>
 <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
@@ -525,10 +534,8 @@ $<span class="math notranslate nohighlight">\(\hat{f}^{t+1} = \hat{f}^{t} \cdot 
 <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">restored_image_rl30</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
 <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Restored Image (Richardson-Lucy, </span><span class="si">{</span><span class="n">iters_rl</span><span class="si">}</span><span class="s1"> iters)&#39;</span><span class="p">)</span>
 <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">restored_image_rlski</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Restored Image (skimage Richardson-Lucy, </span><span class="si">{</span><span class="n">iters_rl</span><span class="si">}</span><span class="s1"> iters)&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
-<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -536,10 +543,7 @@ $<span class="math notranslate nohighlight">\(\hat{f}^{t+1} = \hat{f}^{t} \cdot 
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>kernel shape: torch.Size([11, 11])
 </pre></div>
 </div>
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(np.float64(0.0), np.float64(1.0), np.float64(0.0), np.float64(1.0))
-</pre></div>
-</div>
-<img alt="../_images/f4d69b5e09cd1875695fa1513577b1855df53f60607e5c10a0b0132f2fe6c416.png" src="../_images/f4d69b5e09cd1875695fa1513577b1855df53f60607e5c10a0b0132f2fe6c416.png" />
+<img alt="../_images/3106d14c753c93a8f8f44b98c9dc6a06a81d2985b492c2ba35d37310611993cf.png" src="../_images/3106d14c753c93a8f8f44b98c9dc6a06a81d2985b492c2ba35d37310611993cf.png" />
 </div>
 </div>
 </section>
@@ -592,6 +596,15 @@ $<span class="math notranslate nohighlight">\(\hat{f}^{t+1} = \hat{f}^{t} \cdot 
         <p class="prev-next-subtitle">previous</p>
         <p class="prev-next-title">Basics of image de-blurring</p>
       </div>
+    </a>
+    <a class="right-next"
+       href="2richardsonlucy.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Tuning the Richardson-Lucy Algorithm with 1D functions</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
                 </footer>

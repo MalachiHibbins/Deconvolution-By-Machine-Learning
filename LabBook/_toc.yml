@@ -20,6 +20,6 @@ parts:
   - file: Week3/2richardsonlucy
     title: Tuning Richardson-Lucy 
 
-- caption: Week 5 - Neural Networks
+- caption: Week 5-8 - Neural Networks
   chapters:
-  - file: Week5/MachineLearning
+  - file: Week7/MachineLearningFunction
